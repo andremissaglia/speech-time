@@ -113,7 +113,6 @@ function handleRemove(event) {
 }
 
 function updateStatistics() {
-  console.log('Updating statistics...');
   const totalSpeechTime = participants.reduce((sum, p) => sum + p.speechTime, 0);
   statisticsDiv.innerHTML = '';
 
