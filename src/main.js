@@ -113,7 +113,7 @@ function handleRemove(event) {
 }
 
 function updateStatistics() {
-  const totalSpeechTime = participants.reduce((sum, p) => sum + p.speechTime, 0);
+  const totalSpeechTime = participants.reduce((sum, p) => sum + getSpeechTime(p), 0);
   statisticsDiv.innerHTML = '';
 
   if (participants.length === 0) {
@@ -121,19 +121,30 @@ function updateStatistics() {
     return;
   }
 
-  participants.forEach(participant => {
-    const percentage = totalSpeechTime > 0 ? (participant.speechTime / totalSpeechTime * 100).toFixed(2) : 0;
+  participants.map(participant => {
+    let speechTime = getSpeechTime(participant);
+    const percentage = totalSpeechTime > 0 ? (speechTime / totalSpeechTime * 100).toFixed(2) : 0;
+
     const p = document.createElement('p');
-    let speechTime = participant.speechTime;
-    if(timers[participant.name]) {
-      // If the participant is currently speaking, add the time since the last interval
-      speechTime += (Date.now() - speechIntervals[participant.name]) / 1000;
-    }
     p.textContent = `${participant.name}: ${percentage}% (${participant.speechCount} speaks, ${speechTime.toFixed(2)}s)`;
-    statisticsDiv.appendChild(p);
+    return {
+      element: p,
+      timer: speechTime,
+    }
+  }).sort((a, b) => b.timer - a.timer).forEach(({ element }) => {
+    statisticsDiv.appendChild(element);
   });
 }
 
+
+function getSpeechTime(participant) {
+  let time = participant.speechTime;
+  if (timers[participant.name]) {
+    // If the participant is currently speaking, add the time since the last interval
+    time += (Date.now() - speechIntervals[participant.name]) / 1000;
+  }
+  return time;
+}
 function resetStatistics() {
   participants.forEach(participant => {
     participant.speechTime = 0;
